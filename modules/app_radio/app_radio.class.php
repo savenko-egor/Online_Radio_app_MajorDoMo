@@ -6,7 +6,8 @@
  * module for MajorDoMo project
  * @author Fedorov Ivan <4fedorov@gmail.com>
  * @copyright Fedorov I.A.
- * @version 1.3.1 October 2014
+ * @edited by xor
+ * @version 1.3.2 May 2018
  */
 class app_radio extends module
 {
@@ -128,7 +129,7 @@ class app_radio extends module
         }
         if ($this->data_source == 'app_radio' || $this->data_source == '') {
 
-            $out['VER'] = '1.3.1';
+            $out['VER'] = '1.3.2';
 			global $select_terminal;
             if ($select_terminal != '')
                 setGlobal('RadioSetting.PlayTerminal', $select_terminal);
@@ -229,7 +230,7 @@ class app_radio extends module
 
 function change_station($val)
 {
-	$res = SQLSelect("SELECT ID FROM app_radio WHERE name='$val'");
+	$res = SQLSelect("SELECT ID FROM app_radio WHERE name='".$val."'");
 	if ($res[0]['ID']) {
 		sg('RadioSetting.LastStationID',$res[0]['ID']);
 		sg('RadioSetting.LastStationName',$val);
@@ -249,14 +250,14 @@ function set_volume($vol)
 	$this->control('vol');
 }
 	
-    function control($state){
+function control($state){
        // $log = getLogger($this);
        // $log->error('control');
 
         $out = array();
         global $cmd;
         $cmd = $state;
-        //echo('control->'.$cmd);
+        echo('control->'.$cmd);
 		if($cmd=='st_change'){
 			if(gg('RadioSetting.On'))
 				$cmd = 'play';
@@ -264,15 +265,15 @@ function set_volume($vol)
         if($cmd=='play'){
             $last_stationID = getGlobal('RadioSetting.LastStationID');
             $res = SQLSelect("SELECT stations FROM app_radio WHERE ID=$last_stationID");
-            if ($res[0][stations]) {
-                $out['PLAY'] = $res[0][stations];
+            if ($res[0]['stations']) {
+                $out['PLAY'] = $res[0]['stations'];
             } else {
                 $res = SQLSelect("SELECT stations FROM app_radio");
-                if ($res[0][stations]) {
-                    $out['PLAY'] = $res[0][stations];
+                if ($res[0]['stations']) {
+                    $out['PLAY'] = $res[0]['stations'];
                 } else {
                     say('Станций не найдено');
-                    $out['PLAY'] = 'http://pub4.di.fm:80/di_classiceurodance';
+                    //$out['PLAY'] = 'http://pub4.di.fm:80/di_classiceurodance';
                 }
             }
         }
@@ -283,8 +284,8 @@ function set_volume($vol)
     function select_player(&$out){
         global $cmd;
         global $volume;
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        //$ch = curl_init();
+        //curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
         $play_terminal = getGlobal('RadioSetting.PlayTerminal');
         echo $play_terminal;
@@ -304,9 +305,10 @@ function set_volume($vol)
          sg('RadioSetting.VolumeLevel', $volume);
          $url.="&command=volume&volume=".$volume;
         }
-        curl_setopt($ch, CURLOPT_URL, $url);
-        $res=curl_exec($ch);
-        curl_close($ch);
+        //curl_setopt($ch, CURLOPT_URL, $url);
+        //$res=curl_exec($ch);
+        //curl_close($ch);
+        getURL($url,0);
     }
 
     function view_stations(&$out)
@@ -314,7 +316,7 @@ function set_volume($vol)
         //require(DIR_MODULES.$this->name.'/view_stations.php');
         $table_name = 'app_radio';
         $res = SQLSelect("SELECT * FROM $table_name");
-        if ($res[0][ID]) {
+        if ($res[0]['ID']) {
             $out['RESULT'] = $res;
         }
     }
@@ -471,7 +473,6 @@ else
 	function uninstall() 
 	{
 		SQLExec("drop table if exists app_radio");
-        parent::uninstall();
 	}
 	
     function dbInstall($data)
